@@ -100,7 +100,7 @@ func (handler *SQLHandler) DBUpdateBookByID(book Book, user User) error {
 		Log.ErrorLog.Error(result.Error)
 		return result.Error
 	}
-	result := handler.db.Debug().Model(&book).Where("user_id = ?", stdu.UserID).Where("book_id = ?", book.BookID).Update(&book)
+	result := handler.db.Debug().Model(&book).Where("user_id = ?", stdu.UserID).Update(&book)
 	if result.Error != nil {
 		Log.ErrorLog.Error(result.Error)
 		return result.Error

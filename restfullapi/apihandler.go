@@ -269,6 +269,19 @@ func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http
 
 func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http.Request) {
 	user, _ := jwt.IsLogedin(r)
+	vars := mux.Vars(r)
+	if _, ok := vars["ID"]; !ok {
+		w.WriteHeader(http.StatusNotFound)
+		Log.ErrorLog.Infof("Bad Url Request: %s", r.URL.String())
+		return
+	}
+	bookID, err := strconv.Atoi(vars["ID"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		Log.ErrorLog.Error(err)
+	}
+
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	//defer r.Body.Close()
 	if err != nil {
@@ -286,9 +299,11 @@ func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http
 		return
 	}
 	fmt.Println(book.BookID)
+	book.BookID = bookID
 	err = handler.dbhandler.DBUpdateBookByID(book, user)
 	if err != nil {
 		w.Write([]byte(err.Error()))
+		fmt.Println("loplop")
 		Log.ErrorLog.ErrorDatabaseResult(err)
 		return
 	}
