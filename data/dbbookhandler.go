@@ -2,7 +2,7 @@ package data
 
 import (
 	"errors"
-	Log "go-rest-api/logwrapper"
+	Err "go-rest-api/errorhandler"
 
 	"github.com/jinzhu/gorm"
 )
@@ -13,11 +13,11 @@ func (handler *SQLHandler) DBGetBooks() ([]Book, error) {
 	books := []Book{}
 	result := handler.db.Debug().Find(&books)
 	if result.Error != nil {
-		Log.ErrorLog.Error(result.Error)
-		return nil, result.Error
-	} else if result.RowsAffected == 0 {
-		Log.ErrorLog.Error(errors.New("no row effected"))
-		return nil, errors.New("no row effected")
+		//Log.ErrorLog.Error(result.Error)
+		return nil, &Err.ErrorDBFindResult{Err: result.Error}
+	}
+	if result.RowsAffected == 0 {
+		return nil, &Err.ErrorDBNoRowsAffected{Err: errors.New("no row effected")}
 	}
 	return books, nil
 }
@@ -27,12 +27,10 @@ func (handler *SQLHandler) DBReadBookByID(BookID int) ([]Context, error) {
 	contexts := []Context{}
 	book := Book{}
 	if result := handler.db.Debug().Where("book_id = ?", BookID).First(&book); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		Log.ErrorLog.Error(result.Error)
-		return contexts, result.Error
+		return nil, &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	if result := handler.db.Debug().Where("book_id = ?", BookID).Find(&contexts); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		Log.ErrorLog.Error(result.Error)
-		return nil, result.Error
+		return nil, &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	return contexts, nil
 }
@@ -41,8 +39,7 @@ func (handler *SQLHandler) DBReadBookByID(BookID int) ([]Context, error) {
 func (handler *SQLHandler) DBGetBookByID(bookID int) (Book, error) {
 	book := Book{}
 	if result := handler.db.Where("book_id = ?", bookID).First(&book); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		Log.ErrorLog.Error(result.Error)
-		return Book{}, nil
+		return Book{}, &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	return book, nil
 }
@@ -78,35 +75,30 @@ func (handler *SQLHandler) DBGetBookByID(bookID int) (Book, error) {
 func (handler *SQLHandler) DBDeleteBookByID(bookID int, user User) error {
 	stdu := User{}
 	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
+		return &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	result := handler.db.Debug().Where("user_id = ?", stdu.UserID).Where("book_id = ?", bookID).Delete(&Book{})
 	if result.Error != nil {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
-	} else if result.RowsAffected == 0 {
-		Log.ErrorLog.Error(errors.New("no row effected"))
-		return errors.New("no row effected")
+		return &Err.ErrorDBDeleteResult{Err: result.Error}
 	}
-
+	if result.RowsAffected == 0 {
+		return &Err.ErrorDBNoRowsAffected{Err: errors.New("no row effected")}
+	}
 	return nil
 }
 
 //DBUpdateBookByID delete a book from database
 func (handler *SQLHandler) DBUpdateBookByID(book Book, user User) error {
 	stdu := User{}
-	if result := handler.db.Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
+	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+		return &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	result := handler.db.Debug().Model(&book).Where("user_id = ?", stdu.UserID).Update(&book)
 	if result.Error != nil {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
-	} else if result.RowsAffected == 0 {
-		Log.ErrorLog.Error(errors.New("no row effected"))
-		return errors.New("no row effected")
+		return &Err.ErrorDBUpdateResult{Err: result.Error}
+	}
+	if result.RowsAffected == 0 {
+		return &Err.ErrorDBNoRowsAffected{Err: errors.New("no row effected")}
 	}
 	return nil
 }
@@ -114,18 +106,16 @@ func (handler *SQLHandler) DBUpdateBookByID(book Book, user User) error {
 //DBInsertBook insert new book to database
 func (handler *SQLHandler) DBInsertBook(book Book, user User) error {
 	stdu := User{}
-	if result := handler.db.Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
+	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+		return &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	book.UserID = stdu.UserID
 	result := handler.db.Debug().Create(&book)
 	if result.Error != nil {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
-	} else if result.RowsAffected == 0 {
-		Log.ErrorLog.Error(errors.New("no row effected"))
-		return errors.New("no row effected")
+		return &Err.ErrorDBCreateResult{Err: result.Error}
+	}
+	if result.RowsAffected == 0 {
+		return &Err.ErrorDBNoRowsAffected{Err: errors.New("no row effected")}
 	}
 	return nil
 }
@@ -134,17 +124,15 @@ func (handler *SQLHandler) DBInsertBook(book Book, user User) error {
 func (handler *SQLHandler) DBAddContext(context Context, user User) error {
 	stdu := User{}
 	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
+		return &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	context.UserID = stdu.UserID
 	result := handler.db.Debug().Create(&context)
 	if result.Error != nil {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
-	} else if result.RowsAffected == 0 {
-		Log.ErrorLog.Error(errors.New("no row effected"))
-		return errors.New("no row effected")
+		return &Err.ErrorDBCreateResult{Err: result.Error}
+	}
+	if result.RowsAffected == 0 {
+		return &Err.ErrorDBNoRowsAffected{Err: errors.New("no row effected")}
 	}
 	return nil
 }

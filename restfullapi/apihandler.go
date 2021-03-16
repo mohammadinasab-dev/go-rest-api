@@ -2,8 +2,10 @@ package restfullapi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-rest-api/data"
+	Err "go-rest-api/errorhandler"
 	Log "go-rest-api/logwrapper"
 	"go-rest-api/security/jwt"
 	"io/ioutil"
@@ -25,288 +27,252 @@ func NewStoryBookRestAPIHandler(db *data.SQLHandler) *StoryBookRestAPIHandler {
 	}
 }
 
-func (handler StoryBookRestAPIHandler) signup(w http.ResponseWriter, r *http.Request) {
+type rootHandler func(w http.ResponseWriter, r *http.Request) error
+
+// Pattern for endpoint on middleware chain, not takes a diff signature.
+func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Execute the final handler, and deal with errors
+	err := h(w, r)
+	if err != nil {
+		if err, ok := err.(Err.HTTPError); ok {
+			err.SetResponse(w, r)
+			Log.STDLog.Error(err)
+			return
+		}
+
+		if err, ok := err.(Err.DBError); ok {
+			fmt.Println("hhhhhhaaaaaaaa")
+			err.SetResponse(w, r)
+			Log.STDLog.Error(err)
+			return
+		}
+
+		Log.STDLog.Error(err)              /////////////set up logrus for jwt token error
+		w.WriteHeader(http.StatusConflict) /////////////i dont know
+		json.NewEncoder(w).Encode(err.Error())
+	}
+}
+
+func (handler StoryBookRestAPIHandler) signup(w http.ResponseWriter, r *http.Request) error {
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorReadRequestBody(err)
-		return
+		return &Err.ErrorReadRequestBody{Err: err}
 	}
 	user := data.User{}
 	err = json.Unmarshal(jsonbyte, &user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorJSONMarshal(err)
-		return
+		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
 	if err := user.Validate(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.Error(err)
-		return
+		return &Err.ErrorValidateRequest{Err: err}
 	}
 	err = handler.dbhandler.DBSignUpHandler(user)
 	if err != nil {
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorDatabaseResult(err)
-		return
+		return err
 	}
 	if !jwt.SetJwtToken(w, user) {
-		fmt.Println("jwt not set")
-		Log.ErrorLog.Warn("jwt not set")
+		return &Err.ErrorJWRTokenNotSet{Err: err}
 	}
-	w.Write([]byte("registeration succeed"))
+	json.NewEncoder(w).Encode("registeration succeed")
+	// w.Write([]byte("registeration succeed"))
+	return nil
 
 }
 
-func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Request) {
+func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Request) error {
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorReadRequestBody(err)
-		return
+		return &Err.ErrorReadRequestBody{Err: err}
 	}
 	user := data.User{}
 	err = json.Unmarshal(jsonbyte, &user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorJSONUnMarshal(err)
-		return
+		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
 	storeduser, err := handler.dbhandler.DBLoginHandler(user)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorDatabaseResult(err)
-		return
+		fmt.Println("yeeeeeeeeeees")
+		return err
 	}
 	//w.WriteHeader(http.StatusOK)
 	jsonbyte, err = json.Marshal(storeduser)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorJSONMarshal(err)
-		return
+		return &Err.ErrorJSONMarshal{Err: err}
+
 	}
 	if !jwt.SetJwtToken(w, user) {
-		Log.ErrorLog.Warn("jwt not set")
+		return &Err.ErrorJWRTokenNotSet{Err: err} ///ERROR OR WARN
 	}
-	w.Write(jsonbyte)
 
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonbyte)
+	return nil
 }
 
-func (handler StoryBookRestAPIHandler) newBook(w http.ResponseWriter, r *http.Request) {
+func (handler StoryBookRestAPIHandler) newBook(w http.ResponseWriter, r *http.Request) error {
 	user, _ := jwt.IsLogedin(r)
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorReadRequestBody(err)
-		return
+		return &Err.ErrorReadRequestBody{Err: err}
 	}
 	book := data.Book{}
 	err = json.Unmarshal(jsonbyte, &book)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorJSONUnMarshal(err)
-		return
+		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
 
-	fmt.Println("i am ok")
 	err = handler.dbhandler.DBInsertBook(book, user)
 	if err != nil {
-		Log.ErrorLog.ErrorDatabaseResult(err)
+		return err
 	}
 
-	fmt.Fprint(w, "start newbook\n")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("start newbook")
+	// fmt.Fprint(w, "start newbook\n")
+	return nil
 }
 
-func (handler StoryBookRestAPIHandler) newContext(w http.ResponseWriter, r *http.Request) {
+func (handler StoryBookRestAPIHandler) newContext(w http.ResponseWriter, r *http.Request) error {
 	user, _ := jwt.IsLogedin(r)
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorReadRequestBody(err)
-		return
+		return &Err.ErrorReadRequestBody{Err: err}
 	}
 	context := data.Context{}
 	err = json.Unmarshal(jsonbyte, &context)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorJSONUnMarshal(err)
-		return
+		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
 	if err := context.Validate(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.Error(err)
-		return
+		return &Err.ErrorValidateRequest{Err: err}
 	}
 	err = handler.dbhandler.DBAddContext(context, user)
 	if err != nil {
-		Log.ErrorLog.ErrorDatabaseResult(err)
+		return err
 	}
 
-	fmt.Fprint(w, "add new context\n")
-
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("add new context")
+	// fmt.Fprint(w, "add new context\n")
+	return nil
 }
 
-func (handler StoryBookRestAPIHandler) getAllBook(w http.ResponseWriter, r *http.Request) {
+func (handler StoryBookRestAPIHandler) getAllBook(w http.ResponseWriter, r *http.Request) error {
 	books, err := handler.dbhandler.DBGetBooks()
 	if err != nil {
-		Log.ErrorLog.ErrorDatabaseResult(err)
+		return (err)
 	}
 	jsonByte, err := json.Marshal(books)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorJSONMarshal(err)
+		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
 	w.Header().Add("content-type", "aplication/json") //Header().Add???**********************
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonByte)
-
+	return nil
 }
 
-func (handler StoryBookRestAPIHandler) getBook(w http.ResponseWriter, r *http.Request) {
+func (handler StoryBookRestAPIHandler) getBook(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
 	if _, ok := vars["ID"]; !ok {
-		w.WriteHeader(http.StatusNotFound)
-		Log.ErrorLog.Infof("Bad Url Request: %s", r.URL.String())
-		return
+		return &Err.ErrorBadRequest{Err: errors.New("bad request")}
 	}
 	bookID, err := strconv.Atoi(vars["ID"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.Error(err)
+		return err
 	}
 	book, err := handler.dbhandler.DBGetBookByID(bookID)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("no row founded!"))
-		Log.ErrorLog.ErrorDatabaseResult(err)
-	} else {
-		jsonBytes, err := json.Marshal(book)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			Log.ErrorLog.ErrorJSONMarshal(err)
-		} else {
-			w.Header().Add("content-type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write(jsonBytes)
-		}
+		fmt.Println("noooooooooooooooooooo")
+		return err
 	}
+	jsonBytes, err := json.Marshal(book)
+	if err != nil {
+		return &Err.ErrorJSONMarshal{Err: err}
+	}
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
+	return nil
 }
 
-func (handler StoryBookRestAPIHandler) readBook(w http.ResponseWriter, r *http.Request) {
+func (handler StoryBookRestAPIHandler) readBook(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
 	if _, ok := vars["ID"]; !ok {
-		w.WriteHeader(http.StatusNotFound)
-		Log.ErrorLog.Infof("Bad Url Request: %s", r.URL.String())
-		return
+		return &Err.ErrorBadRequest{Err: errors.New("bad request")}
 	}
 	bookID, err := strconv.Atoi(vars["ID"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.Error(err)
+		return (err)
 	}
-	tbook, err := handler.dbhandler.DBReadBookByID(bookID)
+	book, err := handler.dbhandler.DBReadBookByID(bookID)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorDatabaseResult(err)
-	} else {
-		jsonBytes, err := json.Marshal(tbook)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			Log.ErrorLog.ErrorJSONMarshal(err)
-		} else {
-			w.Header().Add("content-type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write(jsonBytes)
-		}
+		return err
 	}
-
+	jsonBytes, err := json.Marshal(book)
+	if err != nil {
+		return &Err.ErrorJSONMarshal{Err: err}
+	}
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
+	return nil
 }
 
-func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http.Request) {
+func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http.Request) error {
 	user, _ := jwt.IsLogedin(r)
 	vars := mux.Vars(r)
 	if _, ok := vars["ID"]; !ok {
-		w.WriteHeader(http.StatusNotFound)
-		Log.ErrorLog.Infof("Bad Url Request: %s", r.URL.String())
-		return
+		return &Err.ErrorBadRequest{Err: errors.New("bad request")}
 	}
 	bookID, err := strconv.Atoi(vars["ID"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.Error(err)
+		return err
 	}
 
 	err = handler.dbhandler.DBDeleteBookByID(bookID, user)
 	if err != nil {
-		w.WriteHeader(http.StatusNotAcceptable)
-		w.Write([]byte("book doesn't deleted"))
-		Log.ErrorLog.ErrorDatabaseResult(err)
-	} else {
-		w.Write([]byte("book deleted succesfully"))
+		return err
 	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("book deleted succesfully")
+	// w.Write([]byte("book deleted succesfully"))
+	return nil
 }
 
-func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http.Request) {
+func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http.Request) error {
 	user, _ := jwt.IsLogedin(r)
 	vars := mux.Vars(r)
 	if _, ok := vars["ID"]; !ok {
-		w.WriteHeader(http.StatusNotFound)
-		Log.ErrorLog.Infof("Bad Url Request: %s", r.URL.String())
-		return
+		return &Err.ErrorBadRequest{Err: errors.New("bad request")}
 	}
 	bookID, err := strconv.Atoi(vars["ID"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.Error(err)
+		return err
 	}
 
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	//defer r.Body.Close()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.Error(err)
-		return
+		return &Err.ErrorReadRequestBody{Err: err}
 	}
 	book := data.Book{}
 	err = json.Unmarshal(jsonbyte, &book)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		Log.ErrorLog.ErrorJSONUnMarshal(err)
-		return
+		return &Err.ErrorJSONUnMarshal{}
 	}
 	fmt.Println(book.BookID)
 	book.BookID = bookID
 	err = handler.dbhandler.DBUpdateBookByID(book, user)
 	if err != nil {
-		w.Write([]byte(err.Error()))
-		fmt.Println("loplop")
-		Log.ErrorLog.ErrorDatabaseResult(err)
-		return
+		return err
 	}
-	fmt.Fprint(w, "start updatebook\n")
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("book update succesfully")
+	// fmt.Fprint(w, "start updatebook\n")
+	return nil
 
 }

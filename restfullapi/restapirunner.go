@@ -18,35 +18,35 @@ import (
 func RunAPI(filename string) error {
 	config, err := configuration.LoadConfig(".")
 	if err != nil {
-		Log.ErrorLog.Fatal(err)
+		Log.STDLog.Fatal(err)
 	}
 	db, err := data.CreateDBConnection(config)
 	if err != nil {
-		Log.ErrorLog.Fatal(err)
+		Log.STDLog.Fatal(err)
 	}
 	addr := config.ServerAddress
 	mux := mux.NewRouter()
 	RunAPIOnRouter(mux, db)
-	Log.InfoLog.Info("Server Started ...")
+	Log.STDLog.Info("Server Started ...")
 	return http.ListenAndServe(addr, mux)
 }
 
 //RunAPIOnRouter is runapionrouter
 func RunAPIOnRouter(r *mux.Router, db *data.SQLHandler) {
 	handler := NewStoryBookRestAPIHandler(db)
-	r.HandleFunc("/signup", handler.signup).Methods("POST")
-	r.HandleFunc("/login", handler.login).Methods("POST")
+	// r.HandleFunc("/signup", handler.signup).Methods("POST")
+	r.Handle("/signup", rootHandler(handler.signup)).Methods("POST")
+	r.Handle("/login", rootHandler(handler.login)).Methods("POST")
 	rb := r.PathPrefix("/book").Subrouter()
-	rb.HandleFunc("/new", handler.newBook).Methods("POST")
-	rb.HandleFunc("/newcontext", handler.newContext).Methods("POST")
-	rb.HandleFunc("/{ID}", handler.getBook).Methods("GET")
-	rb.HandleFunc("/{ID}", handler.updateBook).Methods("PUT")
-	rb.HandleFunc("/{ID}", handler.deleteBook).Methods("DELETE")
-	rb.HandleFunc("/view/{ID}", handler.getBook).Methods("GET")
-	rb.HandleFunc("/read/{ID}", handler.readBook).Methods("GET")
-	rb.HandleFunc("/all", handler.getAllBook).Methods("GET")
+	rb.Handle("/new", rootHandler(handler.newBook)).Methods("POST")
+	rb.Handle("/newcontext", rootHandler(handler.newContext)).Methods("POST")
+	rb.Handle("/{ID}", rootHandler(handler.getBook)).Methods("GET")
+	rb.Handle("/{ID}", rootHandler(handler.updateBook)).Methods("PUT")
+	rb.Handle("/{ID}", rootHandler(handler.deleteBook)).Methods("DELETE")
+	rb.Handle("/view/{ID}", rootHandler(handler.getBook)).Methods("GET")
+	rb.Handle("/read/{ID}", rootHandler(handler.readBook)).Methods("GET")
+	rb.Handle("/all", rootHandler(handler.getAllBook)).Methods("GET")
 	// ru := r.PathPrefix("/user/").Subrouter()
 	r.Use(middleware.LoggerMiddle, middleware.ContentTypeMiddle)
 	rb.Use(middleware.JWTMiddle)
-
 }

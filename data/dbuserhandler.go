@@ -2,6 +2,7 @@ package data
 
 import (
 	"errors"
+	Err "go-rest-api/errorhandler"
 	Log "go-rest-api/logwrapper"
 	"log"
 
@@ -18,7 +19,7 @@ func hashAndSalt(pwd []byte) string {
 	// than the MinCost (4)
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
 	if err != nil {
-		Log.ErrorLog.Error(err)
+		Log.STDLog.Error(err)
 	}
 	return string(hash)
 }
@@ -42,12 +43,10 @@ func (handler *SQLHandler) DBSignUpHandler(user User) error {
 	user.Password = hashedPwd
 	result := handler.db.Debug().Create(&user)
 	if result.Error != nil {
-		Log.ErrorLog.Error(result.Error)
-		return result.Error
+		return &Err.ErrorDBCreateResult{Err: result.Error}
 	}
 	if result.RowsAffected == 0 {
-		Log.ErrorLog.Error(errors.New("no row effected"))
-		return errors.New("no row effected")
+		return &Err.ErrorDBNoRowsAffected{Err: errors.New("no row effected")}
 	}
 	return nil
 }
@@ -57,13 +56,12 @@ func (handler *SQLHandler) DBLoginHandler(user User) (User, error) {
 	plainPwd := []byte(user.Password)
 	stdu := User{}
 	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		Log.ErrorLog.Error(result.Error)
-		return User{}, result.Error
+		return User{}, &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	hashedPwd := stdu.Password
 	if !comparePasswords(hashedPwd, plainPwd) {
-		err1 := errors.New("password incorrect")
-		return stdu, err1
+		err := errors.New("password incorrect")
+		return User{}, err
 	}
 	return stdu, nil
 }

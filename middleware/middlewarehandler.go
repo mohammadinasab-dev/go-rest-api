@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	Log "go-rest-api/logwrapper"
 	"go-rest-api/security/jwt"
 	"net/http"
@@ -12,8 +11,8 @@ import (
 //LoggerMiddle every request to server
 func LoggerMiddle(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Log.InfoLog.InfoRequestStart(r.URL.Path)
-		defer Log.InfoLog.InfoRequestEnd(r.URL.Path)
+		Log.STDLog.Info(r.URL.Path)
+		defer Log.STDLog.Info(r.URL.Path)
 		h.ServeHTTP(w, r)
 	})
 }
@@ -26,10 +25,10 @@ func ContentTypeMiddle(h http.Handler) http.Handler {
 //JWTMiddle check jwt token
 func JWTMiddle(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, ok := jwt.IsLogedin(r)
+		_, ok := jwt.IsLogedin(r)
 		switch ok {
 		case true:
-			fmt.Fprintln(w, user.Email, "you are loged in before")
+			// fmt.Fprintln(w, user.Email, "you are loged in before")
 			h.ServeHTTP(w, r)
 		case false:
 			func(w http.ResponseWriter, r *http.Request) {

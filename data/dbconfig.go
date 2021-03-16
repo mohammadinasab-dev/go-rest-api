@@ -20,7 +20,7 @@ func CreateDBConnection(config configuration.Config) (*SQLHandler, error) {
 	fmt.Println(connstring)
 	db, err := gorm.Open(config.DBDriver, connstring)
 	if err != nil {
-		Log.ErrorLog.Error(err)
+		Log.STDLog.Error(err)
 		return nil, err
 	}
 	db.AutoMigrate(&User{}, &Book{}, &Context{})
