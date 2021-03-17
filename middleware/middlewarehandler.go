@@ -2,13 +2,13 @@ package middleware
 
 import (
 	Log "go-rest-api/logwrapper"
-	"go-rest-api/security/jwt"
+	jwt "go-rest-api/security/authentication"
 	"net/http"
 
 	"github.com/gorilla/handlers"
 )
 
-//LoggerMiddle every request to server
+//LoggerMiddle log every incomming request to the server
 func LoggerMiddle(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Log.STDLog.Info(r.URL.Path)
@@ -17,18 +17,17 @@ func LoggerMiddle(h http.Handler) http.Handler {
 	})
 }
 
-//ContentTypeMiddle content type
+//ContentTypeMiddle checks content type of incomming request to the server
 func ContentTypeMiddle(h http.Handler) http.Handler {
 	return handlers.ContentTypeHandler(h, "application/json")
 }
 
-//JWTMiddle check jwt token
+//JWTMiddle checks jwt token
 func JWTMiddle(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, ok := jwt.IsLogedin(r)
+		_, ok := jwt.IsAuthorized(r)
 		switch ok {
 		case true:
-			// fmt.Fprintln(w, user.Email, "you are loged in before")
 			h.ServeHTTP(w, r)
 		case false:
 			func(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +37,6 @@ func JWTMiddle(h http.Handler) http.Handler {
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("bad request"))
-			return
-
 		}
 	})
 

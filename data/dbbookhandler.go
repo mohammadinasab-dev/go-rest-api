@@ -44,33 +44,6 @@ func (handler *SQLHandler) DBGetBookByID(bookID int) (Book, error) {
 	return book, nil
 }
 
-//DBGetContextsByID return just a single book correspond to BookID
-// func (handler *SQLHandler) DBGetContextsByID(bookID int) ([]Context, error) {
-// 	rows, err := handler.db.Query("SELECT * FROM `lovestory`.`context` WHERE book_idbook = ?", bookID)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			log.Println(err)
-// 			return nil, err
-// 		}
-// 		log.Println(err)
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-// 	contexts := []Context{}
-// 	for rows.Next() {
-// 		g, err := getRowsDataContext(rows)
-// 		if err != nil {
-// 			log.Println(err)
-// 			continue
-// 		}
-// 		contexts = append(contexts, g)
-// 	}
-// 	if rows.Err(); err != nil {
-// 		return nil, err
-// 	}
-// 	return contexts, nil
-// }
-
 //DBDeleteBookByID delete a book from database
 func (handler *SQLHandler) DBDeleteBookByID(bookID int, user User) error {
 	stdu := User{}

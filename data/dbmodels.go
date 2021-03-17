@@ -2,7 +2,7 @@ package data
 
 import "time"
 
-// User ...
+// User model correspond to user DB table
 type User struct {
 	UserID    int        `gorm:"primary_key" json:"userid"`
 	Name      string     `json:"name"`
@@ -15,7 +15,7 @@ type User struct {
 	Contexts  []Context  `gorm:"ForeignKey:UserID"`
 }
 
-// Book ...
+// Book model correspond to book DB table
 type Book struct {
 	BookID      int        `gorm:"primary_key" json:"bookid"`
 	Title       string     `json:"title"`
@@ -28,7 +28,7 @@ type Book struct {
 	Contexts    []Context  `gorm:"ForeignKey:UserID"`
 }
 
-//Context is
+//Context model correspond to context DB table
 type Context struct {
 	ContextID int        `gorm:"primary_key" json:"contextid"`
 	Title     string     `json:"title"`

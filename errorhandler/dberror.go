@@ -7,40 +7,39 @@ import (
 	"net/http"
 )
 
-// user session state interface
+// Database Error Interface
 type DBError interface {
 	error
-	//	AddResReq(w http.ResponseWriter, r *http.Request)
 	SetResponse(w http.ResponseWriter, r *http.Request)
 }
 
-// simple user unauthorized error
+// simple DB create-insert query error
 type ErrorDBCreateResult struct {
 	Err error
 }
 
-// simple user unauthorized error
+// simple DB find-select query error
 type ErrorDBFindResult struct {
 	Err error
 }
 
-// simple user unauthorized error
+// simple DB delete query error
 type ErrorDBDeleteResult struct {
 	Err error
 }
 
-// simple user unauthorized error
+// simple DB update query error
 type ErrorDBUpdateResult struct {
 	Err error
 }
 
-// simple user unauthorized error
+// simple DB NoRowsAffected error
 type ErrorDBNoRowsAffected struct {
 	Err error
 }
 
 func (err *ErrorDBCreateResult) SetResponse(w http.ResponseWriter, r *http.Request) {
-	Log.STDLog.Error(err) //////////////////////////////////set up logrus for DB Result error
+	Log.STDLog.Error(err)
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(err.Error())
 }
@@ -52,7 +51,7 @@ func (httpErr *ErrorDBCreateResult) Error() string {
 
 func (err *ErrorDBFindResult) SetResponse(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("ErrorDBFindResult")
-	Log.STDLog.Error(err) //////////////////////////////////set up logrus for DB Result error
+	Log.STDLog.Error(err)
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(err.Error())
 }
@@ -63,34 +62,31 @@ func (httpErr *ErrorDBFindResult) Error() string {
 }
 
 func (err *ErrorDBNoRowsAffected) SetResponse(w http.ResponseWriter, r *http.Request) {
-	Log.STDLog.Error(err) //////////////////////////////////set up logrus for DB Result error
+	Log.STDLog.Error(err)
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(err.Error())
 }
 
-// return error message
 func (httpErr *ErrorDBNoRowsAffected) Error() string {
-	return fmt.Sprintf("Error of database no roe affected:%v ", httpErr.Err)
+	return fmt.Sprintf("Error of database no row affected:%v ", httpErr.Err)
 }
 
 func (err *ErrorDBDeleteResult) SetResponse(w http.ResponseWriter, r *http.Request) {
-	Log.STDLog.Error(err) //////////////////////////////////set up logrus for DB Result error
+	Log.STDLog.Error(err)
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(err.Error())
 }
 
-// return error message
 func (httpErr *ErrorDBDeleteResult) Error() string {
 	return fmt.Sprintf("Error of database no roe affected:%v ", httpErr.Err)
 }
 
 func (err *ErrorDBUpdateResult) SetResponse(w http.ResponseWriter, r *http.Request) {
-	Log.STDLog.Error(err) //////////////////////////////////set up logrus for DB Result error
+	Log.STDLog.Error(err)
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(err.Error())
 }
 
-// return error message
 func (httpErr *ErrorDBUpdateResult) Error() string {
 	return fmt.Sprintf("Error of database no roe affected:%v ", httpErr.Err)
 }

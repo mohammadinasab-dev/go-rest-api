@@ -9,7 +9,6 @@ import (
 
 func main() {
 
-	Log.STDLog.Fatal(restfullapi.RunAPI("config.json"))
-	Log.STDLog.Info("database run ...")
+	Log.STDLog.Fatal(restfullapi.RunAPI("."))
 
 }

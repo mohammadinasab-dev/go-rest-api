@@ -7,7 +7,7 @@ import (
 	"go-rest-api/data"
 	Err "go-rest-api/errorhandler"
 	Log "go-rest-api/logwrapper"
-	"go-rest-api/security/jwt"
+	jwt "go-rest-api/security/authentication"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -15,7 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//StoryBookRestAPIHandler is handler
+//StoryBookRestAPIHandler is a reciever type foe http handlers
 type StoryBookRestAPIHandler struct {
 	dbhandler *data.SQLHandler
 }
@@ -29,7 +29,6 @@ func NewStoryBookRestAPIHandler(db *data.SQLHandler) *StoryBookRestAPIHandler {
 
 type rootHandler func(w http.ResponseWriter, r *http.Request) error
 
-// Pattern for endpoint on middleware chain, not takes a diff signature.
 func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Execute the final handler, and deal with errors
 	err := h(w, r)
@@ -39,22 +38,20 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Log.STDLog.Error(err)
 			return
 		}
-
 		if err, ok := err.(Err.DBError); ok {
-			fmt.Println("hhhhhhaaaaaaaa")
 			err.SetResponse(w, r)
 			Log.STDLog.Error(err)
 			return
 		}
-
-		Log.STDLog.Error(err)              /////////////set up logrus for jwt token error
-		w.WriteHeader(http.StatusConflict) /////////////i dont know
+		Log.STDLog.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err.Error())
 	}
 }
 
 func (handler StoryBookRestAPIHandler) signup(w http.ResponseWriter, r *http.Request) error {
 	jsonbyte, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
 		return &Err.ErrorReadRequestBody{Err: err}
 	}
@@ -74,13 +71,13 @@ func (handler StoryBookRestAPIHandler) signup(w http.ResponseWriter, r *http.Req
 		return &Err.ErrorJWRTokenNotSet{Err: err}
 	}
 	json.NewEncoder(w).Encode("registeration succeed")
-	// w.Write([]byte("registeration succeed"))
 	return nil
 
 }
 
 func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Request) error {
 	jsonbyte, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
 		return &Err.ErrorReadRequestBody{Err: err}
 	}
@@ -91,17 +88,15 @@ func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Requ
 	}
 	storeduser, err := handler.dbhandler.DBLoginHandler(user)
 	if err != nil {
-		fmt.Println("yeeeeeeeeeees")
 		return err
 	}
-	//w.WriteHeader(http.StatusOK)
 	jsonbyte, err = json.Marshal(storeduser)
 	if err != nil {
 		return &Err.ErrorJSONMarshal{Err: err}
 
 	}
 	if !jwt.SetJwtToken(w, user) {
-		return &Err.ErrorJWRTokenNotSet{Err: err} ///ERROR OR WARN
+		return &Err.ErrorJWRTokenNotSet{Err: err}
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -110,7 +105,7 @@ func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Requ
 }
 
 func (handler StoryBookRestAPIHandler) newBook(w http.ResponseWriter, r *http.Request) error {
-	user, _ := jwt.IsLogedin(r)
+	user, _ := jwt.IsAuthorized(r)
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -129,12 +124,11 @@ func (handler StoryBookRestAPIHandler) newBook(w http.ResponseWriter, r *http.Re
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode("start newbook")
-	// fmt.Fprint(w, "start newbook\n")
 	return nil
 }
 
 func (handler StoryBookRestAPIHandler) newContext(w http.ResponseWriter, r *http.Request) error {
-	user, _ := jwt.IsLogedin(r)
+	user, _ := jwt.IsAuthorized(r)
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -155,20 +149,21 @@ func (handler StoryBookRestAPIHandler) newContext(w http.ResponseWriter, r *http
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode("add new context")
-	// fmt.Fprint(w, "add new context\n")
 	return nil
 }
 
 func (handler StoryBookRestAPIHandler) getAllBook(w http.ResponseWriter, r *http.Request) error {
 	books, err := handler.dbhandler.DBGetBooks()
 	if err != nil {
+		fmt.Println("1010101010")
 		return (err)
 	}
 	jsonByte, err := json.Marshal(books)
 	if err != nil {
+		fmt.Println("2020202020")
 		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
-	w.Header().Add("content-type", "aplication/json") //Header().Add???**********************
+	w.Header().Add("content-type", "aplication/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonByte)
 	return nil
@@ -185,7 +180,6 @@ func (handler StoryBookRestAPIHandler) getBook(w http.ResponseWriter, r *http.Re
 	}
 	book, err := handler.dbhandler.DBGetBookByID(bookID)
 	if err != nil {
-		fmt.Println("noooooooooooooooooooo")
 		return err
 	}
 	jsonBytes, err := json.Marshal(book)
@@ -222,7 +216,7 @@ func (handler StoryBookRestAPIHandler) readBook(w http.ResponseWriter, r *http.R
 }
 
 func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http.Request) error {
-	user, _ := jwt.IsLogedin(r)
+	user, _ := jwt.IsAuthorized(r)
 	vars := mux.Vars(r)
 	if _, ok := vars["ID"]; !ok {
 		return &Err.ErrorBadRequest{Err: errors.New("bad request")}
@@ -238,12 +232,11 @@ func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode("book deleted succesfully")
-	// w.Write([]byte("book deleted succesfully"))
 	return nil
 }
 
 func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http.Request) error {
-	user, _ := jwt.IsLogedin(r)
+	user, _ := jwt.IsAuthorized(r)
 	vars := mux.Vars(r)
 	if _, ok := vars["ID"]; !ok {
 		return &Err.ErrorBadRequest{Err: errors.New("bad request")}
@@ -252,9 +245,8 @@ func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http
 	if err != nil {
 		return err
 	}
-
 	jsonbyte, err := ioutil.ReadAll(r.Body)
-	//defer r.Body.Close()
+	defer r.Body.Close()
 	if err != nil {
 		return &Err.ErrorReadRequestBody{Err: err}
 	}
@@ -272,7 +264,6 @@ func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode("book update succesfully")
-	// fmt.Fprint(w, "start updatebook\n")
 	return nil
 
 }

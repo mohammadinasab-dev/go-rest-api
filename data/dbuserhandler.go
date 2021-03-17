@@ -37,7 +37,7 @@ func comparePasswords(hashedPwd string, plainPwd []byte) bool {
 	return true
 }
 
-//DBSignUpHandler is sign up
+//DBSignUpHandler handle the sign up request
 func (handler *SQLHandler) DBSignUpHandler(user User) error {
 	hashedPwd := hashAndSalt([]byte(user.Password))
 	user.Password = hashedPwd
@@ -51,7 +51,7 @@ func (handler *SQLHandler) DBSignUpHandler(user User) error {
 	return nil
 }
 
-//DBLoginHandler is log in
+//DBLoginHandler handle the log in request
 func (handler *SQLHandler) DBLoginHandler(user User) (User, error) {
 	plainPwd := []byte(user.Password)
 	stdu := User{}

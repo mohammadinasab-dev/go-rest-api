@@ -11,6 +11,7 @@ type Config struct {
 	DBAddress     string `mapstructure:"DB_ADDRESS"`
 	DBName        string `mapstructure:"DB_NAME"`
 	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
+	JWTKey        string `mapstructure:"JWT_KEY"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
