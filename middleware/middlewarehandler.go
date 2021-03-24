@@ -11,8 +11,8 @@ import (
 //LoggerMiddle log every incomming request to the server
 func LoggerMiddle(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Log.STDLog.Info(r.URL.Path)
-		defer Log.STDLog.Info(r.URL.Path)
+		Log.STDLog.Info("api: " + r.URL.Path + " Started")
+		defer Log.STDLog.Info("api: " + r.URL.Path + " Ended")
 		h.ServeHTTP(w, r)
 	})
 }

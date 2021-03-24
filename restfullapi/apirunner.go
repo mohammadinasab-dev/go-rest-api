@@ -1,12 +1,14 @@
 package restfullapi
 
 import (
+	"fmt"
 	"go-rest-api/configuration"
 	"go-rest-api/data"
 	Log "go-rest-api/logwrapper"
 	"go-rest-api/middleware"
 	jwt "go-rest-api/security/authentication"
 	"net/http"
+	"runtime"
 
 	"github.com/gorilla/mux"
 )
@@ -29,12 +31,13 @@ func RunAPI(path string) error {
 	addr := config.ServerAddress
 	mux := mux.NewRouter()
 	RunAPIOnRouter(mux, db)
-	Log.STDLog.Info("Server Started ...")
+	Log.STDLog.Info("Server Started")
 	return http.ListenAndServe(addr, mux)
 }
 
 //RunAPIOnRouter sets the router
 func RunAPIOnRouter(r *mux.Router, db *data.SQLHandler) {
+	fmt.Println(runtime.Caller(1))
 	handler := NewStoryBookRestAPIHandler(db)
 	r.Handle("/signup", rootHandler(handler.signup)).Methods("POST")
 	r.Handle("/login", rootHandler(handler.login)).Methods("POST")
