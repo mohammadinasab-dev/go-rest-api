@@ -28,3 +28,15 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 	return config, nil
 }
+
+func LoadSetup(path string) (err error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigName("setup copy")
+	viper.SetConfigType("json")
+	if err := viper.ReadInConfig(); err != nil {
+		return err
+	}
+	viper.SetDefault("log.logout", "file")
+	viper.SetDefault("log.logformat", "json")
+	return nil
+}

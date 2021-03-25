@@ -19,6 +19,7 @@ import (
 //Create database connection
 //Set server address and port
 func RunAPI(path string) error {
+	Log.STDLog.Info("logrus set up")
 	config, err := configuration.LoadConfig(path)
 	if err != nil {
 		Log.STDLog.Fatal(err)
