@@ -1,20 +1,17 @@
 package restfullapi
 
 import (
-	"fmt"
 	"go-rest-api/configuration"
 	"go-rest-api/data"
 	Log "go-rest-api/logwrapper"
 	"go-rest-api/middleware"
 	jwt "go-rest-api/security/authentication"
-	"log"
 	"net/http"
-	"runtime"
 
 	"github.com/gorilla/mux"
 )
 
-// var Stdlog = logwrapper.NewSTDLogger()
+var handler *StoryBookRestAPIHandler
 
 //RunAPI initialize the API
 //Create database connection
@@ -23,9 +20,10 @@ func RunAPI(path string) error {
 	Log.STDLog.Info("logrus set up")
 	environment, err := configuration.LoadSetup(".")
 	if err != nil {
-		log.Fatalf("this %v Error was occured til loading setup file", err)
+		Log.STDLog.Fatalf("this %v Error was occured til loading setup file", err)
 	}
 	if environment == "product" {
+		Log.STDLog.Info("api will run in product mode")
 		config, err := configuration.LoadConfig(path)
 		if err != nil {
 			Log.STDLog.Fatal(err)
@@ -42,7 +40,7 @@ func RunAPI(path string) error {
 		return http.ListenAndServe(addr, mux)
 	}
 	if environment == "test" {
-		fmt.Println("TEST")
+		Log.STDLog.Info("api will run in TEST mode")
 		configTest, err := configuration.LoadConfigTest(path)
 		if err != nil {
 			Log.STDLog.Fatal(err)
@@ -63,8 +61,7 @@ func RunAPI(path string) error {
 
 //RunAPIOnRouter sets the router
 func RunAPIOnRouter(r *mux.Router, db *data.SQLHandler) {
-	fmt.Println(runtime.Caller(1))
-	handler := NewStoryBookRestAPIHandler(db)
+	handler = NewStoryBookRestAPIHandler(db)
 	r.Handle("/signup", rootHandler(handler.signup)).Methods("POST")
 	r.Handle("/login", rootHandler(handler.login)).Methods("POST")
 	rb := r.PathPrefix("/book").Subrouter()

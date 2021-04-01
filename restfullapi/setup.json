@@ -1,0 +1,14 @@
+{
+  "run":{
+    "environment":"test"
+  },
+  "log": {
+     "logout": "file",
+     "logformat": "json"
+   },
+  "remote": {
+     "host": "127.0.0.1",
+     "port": 3099
+    
+   }
+}

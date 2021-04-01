@@ -11,7 +11,7 @@ import (
 func (handler *SQLHandler) DBGetBooks() ([]Book, error) {
 
 	books := []Book{}
-	result := handler.db.Debug().Find(&books)
+	result := handler.DB.Debug().Find(&books)
 	if result.Error != nil {
 		//Log.ErrorLog.Error(result.Error)
 		return nil, &Err.ErrorDBFindResult{Err: result.Error}
@@ -26,10 +26,10 @@ func (handler *SQLHandler) DBGetBooks() ([]Book, error) {
 func (handler *SQLHandler) DBReadBookByID(BookID int) ([]Context, error) {
 	contexts := []Context{}
 	book := Book{}
-	if result := handler.db.Debug().Where("book_id = ?", BookID).First(&book); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+	if result := handler.DB.Debug().Where("book_id = ?", BookID).First(&book); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
 		return nil, &Err.ErrorDBFindResult{Err: result.Error}
 	}
-	if result := handler.db.Debug().Where("book_id = ?", BookID).Find(&contexts); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+	if result := handler.DB.Debug().Where("book_id = ?", BookID).Find(&contexts); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
 		return nil, &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	return contexts, nil
@@ -38,7 +38,7 @@ func (handler *SQLHandler) DBReadBookByID(BookID int) ([]Context, error) {
 //DBGetBookByID return just a single book correspond to BookID
 func (handler *SQLHandler) DBGetBookByID(bookID int) (Book, error) {
 	book := Book{}
-	if result := handler.db.Where("book_id = ?", bookID).First(&book); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+	if result := handler.DB.Where("book_id = ?", bookID).First(&book); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
 		return Book{}, &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	return book, nil
@@ -47,10 +47,10 @@ func (handler *SQLHandler) DBGetBookByID(bookID int) (Book, error) {
 //DBDeleteBookByID delete a book from database
 func (handler *SQLHandler) DBDeleteBookByID(bookID int, user User) error {
 	stdu := User{}
-	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+	if result := handler.DB.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
 		return &Err.ErrorDBFindResult{Err: result.Error}
 	}
-	result := handler.db.Debug().Where("user_id = ?", stdu.UserID).Where("book_id = ?", bookID).Delete(&Book{})
+	result := handler.DB.Debug().Where("user_id = ?", stdu.UserID).Where("book_id = ?", bookID).Delete(&Book{})
 	if result.Error != nil {
 		return &Err.ErrorDBDeleteResult{Err: result.Error}
 	}
@@ -63,10 +63,10 @@ func (handler *SQLHandler) DBDeleteBookByID(bookID int, user User) error {
 //DBUpdateBookByID delete a book from database
 func (handler *SQLHandler) DBUpdateBookByID(book Book, user User) error {
 	stdu := User{}
-	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+	if result := handler.DB.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
 		return &Err.ErrorDBFindResult{Err: result.Error}
 	}
-	result := handler.db.Debug().Model(&book).Where("user_id = ?", stdu.UserID).Update(&book)
+	result := handler.DB.Debug().Model(&book).Where("user_id = ?", stdu.UserID).Update(&book)
 	if result.Error != nil {
 		return &Err.ErrorDBUpdateResult{Err: result.Error}
 	}
@@ -79,11 +79,11 @@ func (handler *SQLHandler) DBUpdateBookByID(book Book, user User) error {
 //DBInsertBook insert new book to database
 func (handler *SQLHandler) DBInsertBook(book Book, user User) error {
 	stdu := User{}
-	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+	if result := handler.DB.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
 		return &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	book.UserID = stdu.UserID
-	result := handler.db.Debug().Create(&book)
+	result := handler.DB.Debug().Create(&book)
 	if result.Error != nil {
 		return &Err.ErrorDBCreateResult{Err: result.Error}
 	}
@@ -96,11 +96,11 @@ func (handler *SQLHandler) DBInsertBook(book Book, user User) error {
 //DBAddContext add new context to available book
 func (handler *SQLHandler) DBAddContext(context Context, user User) error {
 	stdu := User{}
-	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+	if result := handler.DB.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
 		return &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	context.UserID = stdu.UserID
-	result := handler.db.Debug().Create(&context)
+	result := handler.DB.Debug().Create(&context)
 	if result.Error != nil {
 		return &Err.ErrorDBCreateResult{Err: result.Error}
 	}

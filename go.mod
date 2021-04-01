@@ -12,5 +12,6 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.3.0
 	golang.org/x/crypto v0.0.0-20210314154223-e6e6c4f2bb5b
 )

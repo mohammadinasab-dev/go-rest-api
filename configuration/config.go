@@ -43,21 +43,17 @@ func LoadConfig(path string) (config Config, err error) {
 }
 
 func LoadConfigTest(path string) (configtest ConfigTest, err error) {
-	fmt.Println("loplop")
 	configtest = ConfigTest{}
 	viper.AddConfigPath(path)
 	viper.SetConfigName("testapp")
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println(err)
 		return ConfigTest{}, err
 	}
 	if err := viper.Unmarshal(&configtest); err != nil {
-		fmt.Println(err)
 		return ConfigTest{}, err
 	}
-	fmt.Print(configtest.DBDriver)
 	return configtest, nil
 }
 
@@ -71,8 +67,6 @@ func LoadSetup(path string) (string, error) {
 	if viper.GetString("run.environment") == "test" {
 		viper.Set("log.logout", "stdOut")
 		viper.Set("log.logformat", "Text")
-		// viper.SetDefault("log.logout", "stdOut")
-		// viper.SetDefault("log.logformat", "Text")
 		return "test", nil
 	}
 	if viper.GetString("run.environment") == "product" {

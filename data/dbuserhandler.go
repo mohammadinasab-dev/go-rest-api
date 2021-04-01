@@ -41,7 +41,7 @@ func comparePasswords(hashedPwd string, plainPwd []byte) bool {
 func (handler *SQLHandler) DBSignUpHandler(user User) error {
 	hashedPwd := hashAndSalt([]byte(user.Password))
 	user.Password = hashedPwd
-	result := handler.db.Debug().Create(&user)
+	result := handler.DB.Debug().Create(&user)
 	if result.Error != nil {
 		return &Err.ErrorDBCreateResult{Err: result.Error}
 	}
@@ -55,7 +55,7 @@ func (handler *SQLHandler) DBSignUpHandler(user User) error {
 func (handler *SQLHandler) DBLoginHandler(user User) (User, error) {
 	plainPwd := []byte(user.Password)
 	stdu := User{}
-	if result := handler.db.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+	if result := handler.DB.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
 		return User{}, &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	hashedPwd := stdu.Password

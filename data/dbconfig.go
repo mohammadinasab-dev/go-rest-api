@@ -10,7 +10,7 @@ import (
 
 //SQLHandler is a type
 type SQLHandler struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
 // <username>:<pw>@tcp(<HOST>:<port>)/<dbname>
@@ -27,7 +27,7 @@ func CreateDBConnection(config configuration.Config) (*SQLHandler, error) {
 	db.Model(&Context{}).AddForeignKey("user_id", "users(user_id)", "SET NULL", "CASCADE")
 	db.Model(&Context{}).AddForeignKey("book_id", "books(book_id)", "SET NULL", "CASCADE")
 	return &SQLHandler{
-		db: db,
+		DB: db,
 	}, nil
 
 }
@@ -43,7 +43,7 @@ func CreateTestDBConnection(config configuration.ConfigTest) (*SQLHandler, error
 	db.Model(&Context{}).AddForeignKey("user_id", "users(user_id)", "SET NULL", "CASCADE")
 	db.Model(&Context{}).AddForeignKey("book_id", "books(book_id)", "SET NULL", "CASCADE")
 	return &SQLHandler{
-		db: db,
+		DB: db,
 	}, nil
 
 }
