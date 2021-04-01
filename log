@@ -1,2 +1,0 @@
-{"file":"apirunner.go:22","func":" RunAPI","level":"info","msg":"logrus set up","time":"25-03-2021 19:42:21"}
-{"file":"apirunner.go:35","func":" RunAPI","level":"info","msg":"Server Started","time":"25-03-2021 19:42:22"}

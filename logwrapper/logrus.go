@@ -61,7 +61,7 @@ func formatFilePath(path string) string {
 }
 
 func LogSetUp() error {
-	err := configuration.LoadSetup(".")
+	_, err := configuration.LoadSetup(".")
 	if err != nil {
 		return err
 	}

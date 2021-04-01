@@ -7,6 +7,7 @@ import (
 	Log "go-rest-api/logwrapper"
 	"go-rest-api/middleware"
 	jwt "go-rest-api/security/authentication"
+	"log"
 	"net/http"
 	"runtime"
 
@@ -20,20 +21,44 @@ import (
 //Set server address and port
 func RunAPI(path string) error {
 	Log.STDLog.Info("logrus set up")
-	config, err := configuration.LoadConfig(path)
+	environment, err := configuration.LoadSetup(".")
 	if err != nil {
-		Log.STDLog.Fatal(err)
+		log.Fatalf("this %v Error was occured til loading setup file", err)
 	}
-	db, err := data.CreateDBConnection(config)
-	if err != nil {
-		Log.STDLog.Fatal(err)
+	if environment == "product" {
+		config, err := configuration.LoadConfig(path)
+		if err != nil {
+			Log.STDLog.Fatal(err)
+		}
+		db, err := data.CreateDBConnection(config)
+		if err != nil {
+			Log.STDLog.Fatal(err)
+		}
+		jwt.JWTSetter(config.JWTKey)
+		addr := config.ServerAddress
+		mux := mux.NewRouter()
+		RunAPIOnRouter(mux, db)
+		Log.STDLog.Info("Server Started")
+		return http.ListenAndServe(addr, mux)
 	}
-	jwt.JWTSetter(config.JWTKey)
-	addr := config.ServerAddress
-	mux := mux.NewRouter()
-	RunAPIOnRouter(mux, db)
-	Log.STDLog.Info("Server Started")
-	return http.ListenAndServe(addr, mux)
+	if environment == "test" {
+		fmt.Println("TEST")
+		configTest, err := configuration.LoadConfigTest(path)
+		if err != nil {
+			Log.STDLog.Fatal(err)
+		}
+		db, err := data.CreateTestDBConnection(configTest)
+		if err != nil {
+			Log.STDLog.Fatal(err)
+		}
+		jwt.JWTSetter(configTest.JWTKey)
+		addr := configTest.ServerAddress
+		mux := mux.NewRouter()
+		RunAPIOnRouter(mux, db)
+		Log.STDLog.Info("Test Server Started")
+		return http.ListenAndServe(addr, mux)
+	}
+	return nil //CHECK
 }
 
 //RunAPIOnRouter sets the router

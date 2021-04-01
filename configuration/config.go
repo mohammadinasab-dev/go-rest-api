@@ -1,6 +1,9 @@
 package configuration
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/spf13/viper"
 )
 
@@ -12,6 +15,15 @@ type Config struct {
 	DBName        string `mapstructure:"DB_NAME"`
 	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
 	JWTKey        string `mapstructure:"JWT_KEY"`
+}
+type ConfigTest struct {
+	DBDriver      string `mapstructure:"TEST_DB_DRIVER"`
+	DBUsername    string `mapstructure:"TEST_DB_USERNAME"`
+	DBPassword    string `mapstructure:"TEST_DB_PASSWORD"`
+	DBAddress     string `mapstructure:"TEST_DB_ADDRESS"`
+	DBName        string `mapstructure:"TEST_DB_NAME"`
+	ServerAddress string `mapstructure:"TEST_SERVER_ADDRESS"`
+	JWTKey        string `mapstructure:"TEST_JWT_KEY"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -26,17 +38,47 @@ func LoadConfig(path string) (config Config, err error) {
 	if err := viper.Unmarshal(&config); err != nil {
 		return Config{}, err
 	}
+	fmt.Print(config.DBDriver)
 	return config, nil
 }
 
-func LoadSetup(path string) (err error) {
+func LoadConfigTest(path string) (configtest ConfigTest, err error) {
+	fmt.Println("loplop")
+	configtest = ConfigTest{}
 	viper.AddConfigPath(path)
-	viper.SetConfigName("setup copy")
+	viper.SetConfigName("testapp")
+	viper.SetConfigType("env")
+	viper.AutomaticEnv()
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println(err)
+		return ConfigTest{}, err
+	}
+	if err := viper.Unmarshal(&configtest); err != nil {
+		fmt.Println(err)
+		return ConfigTest{}, err
+	}
+	fmt.Print(configtest.DBDriver)
+	return configtest, nil
+}
+
+func LoadSetup(path string) (string, error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigName("setup")
 	viper.SetConfigType("json")
 	if err := viper.ReadInConfig(); err != nil {
-		return err
+		return "", err
 	}
-	viper.SetDefault("log.logout", "file")
-	viper.SetDefault("log.logformat", "json")
-	return nil
+	if viper.GetString("run.environment") == "test" {
+		viper.Set("log.logout", "stdOut")
+		viper.Set("log.logformat", "Text")
+		// viper.SetDefault("log.logout", "stdOut")
+		// viper.SetDefault("log.logformat", "Text")
+		return "test", nil
+	}
+	if viper.GetString("run.environment") == "product" {
+		viper.SetDefault("log.logout", "file")
+		viper.SetDefault("log.logformat", "json")
+		return "product", nil
+	}
+	return "", errors.New("run.environment variable not set or Not defined")
 }

@@ -1,4 +1,7 @@
 {
+  "run":{
+    "environment":"test"
+  },
   "log": {
      "logout": "file",
      "logformat": "json"
