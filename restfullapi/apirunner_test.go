@@ -21,8 +21,7 @@ import (
 var Handler *StoryBookRestAPIHandler
 
 func TestMain(m *testing.M) {
-
-	err := Database(".")
+	err := Database("../")
 	if err != nil {
 		Log.STDLog.Fatal(err)
 	}

@@ -1,6 +1,6 @@
 {
   "run":{
-    "environment":"test"
+    "environment":"product"
   },
   "log": {
      "logout": "file",

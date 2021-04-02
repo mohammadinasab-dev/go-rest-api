@@ -8,7 +8,9 @@ import (
 )
 
 func main() {
-
+	// _, b, _, _ := runtime.Caller(0)
+	// basepath := filepath.Dir(b)
+	// fmt.Println(basepath)
 	Log.STDLog.Fatal(restfullapi.RunAPI("."))
 
 }

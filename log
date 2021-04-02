@@ -1,0 +1,3 @@
+{"file":"apirunner.go:20","func":" RunAPI","level":"info","msg":"logrus set up","time":"02-04-2021 04:14:04"}
+{"file":"apirunner.go:26","func":" RunAPI","level":"info","msg":"api will run in product mode","time":"02-04-2021 04:14:04"}
+{"file":"apirunner.go:39","func":" RunAPI","level":"info","msg":"Server Started","time":"02-04-2021 04:14:04"}

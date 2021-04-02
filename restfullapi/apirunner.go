@@ -18,7 +18,7 @@ var handler *StoryBookRestAPIHandler
 //Set server address and port
 func RunAPI(path string) error {
 	Log.STDLog.Info("logrus set up")
-	environment, err := configuration.LoadSetup(".")
+	environment, err := configuration.LoadSetup(path)
 	if err != nil {
 		Log.STDLog.Fatalf("this %v Error was occured til loading setup file", err)
 	}

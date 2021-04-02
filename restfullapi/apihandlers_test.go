@@ -77,7 +77,7 @@ func TestGetBooks(t *testing.T) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer refreshTables()
+	//defer refreshTables()
 	_, err = addBooks()
 	if err != nil {
 		log.Fatal(err)
