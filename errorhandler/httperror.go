@@ -1,9 +1,9 @@
 package errorhandler
 
 import (
-	"encoding/json"
 	"fmt"
 	Log "go-rest-api/logwrapper"
+	"go-rest-api/response"
 	"net/http"
 )
 
@@ -45,60 +45,54 @@ type ErrorBadRequest struct {
 
 func (err *ErrorReadRequestBody) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error to read request body", http.StatusInternalServerError, err.Err)
+}
+
+func (httpErr *ErrorReadRequestBody) Error() string {
+	return fmt.Sprint(httpErr.Err)
 }
 
 func (err *ErrorJSONMarshal) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error to marshal the body", http.StatusBadRequest, err.Err)
+}
+
+func (httpErr *ErrorJSONMarshal) Error() string {
+	return fmt.Sprint(httpErr.Err)
 }
 
 func (err *ErrorJSONUnMarshal) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error to unmarshal the Json format", http.StatusBadRequest, err.Err)
+}
+
+func (httpErr *ErrorJSONUnMarshal) Error() string {
+	return fmt.Sprint(httpErr.Err)
 }
 
 func (err *ErrorValidateRequest) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error of validation faild", http.StatusBadRequest, err.Err)
+}
+
+func (httpErr *ErrorValidateRequest) Error() string {
+	return fmt.Sprint(httpErr.Err)
 }
 
 func (err *ErrorJWRTokenNotSet) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error of jwt token not set:%v ", http.StatusInternalServerError, err.Err)
+}
+
+func (httpErr *ErrorJWRTokenNotSet) Error() string {
+	return fmt.Sprint(httpErr.Err)
 }
 
 func (err *ErrorBadRequest) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(err.Error())
-}
-
-func (httpErr *ErrorReadRequestBody) Error() string {
-	return fmt.Sprintf("Error to read request body:%v ", httpErr.Err)
-}
-
-func (httpErr *ErrorJSONMarshal) Error() string {
-	return fmt.Sprintf("Error to marshal the body:%v ", httpErr.Err)
-}
-
-func (httpErr *ErrorJSONUnMarshal) Error() string {
-	return fmt.Sprintf("Error to unmarshal the database result:%v ", httpErr.Err)
-}
-
-func (httpErr *ErrorValidateRequest) Error() string {
-	return fmt.Sprintf("Error of validation faild:%v ", httpErr.Err)
-}
-
-func (httpErr *ErrorJWRTokenNotSet) Error() string {
-	return fmt.Sprintf("Error of jwt token not set:%v ", httpErr.Err)
+	response.ERROR(w, "false", "Error of jwt token not set:%v ", http.StatusInternalServerError, err.Err)
 }
 
 func (httpErr *ErrorBadRequest) Error() string {
-	return fmt.Sprintf("Error of jwt token not set:%v ", httpErr.Err)
+	return fmt.Sprint(httpErr.Err)
 }

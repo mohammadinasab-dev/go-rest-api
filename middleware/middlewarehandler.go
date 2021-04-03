@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"errors"
 	Log "go-rest-api/logwrapper"
+	"go-rest-api/response"
 	jwt "go-rest-api/security/authentication"
 	"net/http"
 
@@ -31,12 +33,10 @@ func JWTMiddle(h http.Handler) http.Handler {
 			h.ServeHTTP(w, r)
 		case false:
 			func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("first you should log in"))
+				response.ERROR(w, "false", "Error of Unauthorized user", http.StatusUnauthorized, errors.New("Unauthorized attempt"))
 			}(w, r)
 		default:
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("bad request"))
+			response.ERROR(w, "false", "Error of Unauthorized user", http.StatusBadRequest, errors.New("BadRequest"))
 		}
 	})
 

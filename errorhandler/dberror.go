@@ -1,9 +1,9 @@
 package errorhandler
 
 import (
-	"encoding/json"
 	"fmt"
 	Log "go-rest-api/logwrapper"
+	"go-rest-api/response"
 	"net/http"
 )
 
@@ -40,53 +40,48 @@ type ErrorDBNoRowsAffected struct {
 
 func (err *ErrorDBCreateResult) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error of database create query", http.StatusInternalServerError, err.Err)
 }
 
 // return error message
-func (httpErr *ErrorDBCreateResult) Error() string {
-	return fmt.Sprintf("Error of database find query:%v ", httpErr.Err)
+func (err *ErrorDBCreateResult) Error() string {
+
+	return fmt.Sprint(err.Err)
 }
 
 func (err *ErrorDBFindResult) SetResponse(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("ErrorDBFindResult")
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error of database find query", http.StatusInternalServerError, err.Err)
 }
 
 // return error message
-func (httpErr *ErrorDBFindResult) Error() string {
-	return fmt.Sprintf("Error of database find query:%v ", httpErr.Err)
+func (err *ErrorDBFindResult) Error() string {
+	return fmt.Sprint(err.Err)
 }
 
 func (err *ErrorDBNoRowsAffected) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error of database no row affected", http.StatusInternalServerError, err.Err)
 }
 
-func (httpErr *ErrorDBNoRowsAffected) Error() string {
-	return fmt.Sprintf("Error of database no row affected:%v ", httpErr.Err)
+func (err *ErrorDBNoRowsAffected) Error() string {
+	return fmt.Sprint(err.Err)
 }
 
 func (err *ErrorDBDeleteResult) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error of database no roe affected:", http.StatusInternalServerError, err.Err)
 }
 
-func (httpErr *ErrorDBDeleteResult) Error() string {
-	return fmt.Sprintf("Error of database no roe affected:%v ", httpErr.Err)
+func (err *ErrorDBDeleteResult) Error() string {
+	return fmt.Sprint(err.Err)
 }
 
 func (err *ErrorDBUpdateResult) SetResponse(w http.ResponseWriter, r *http.Request) {
 	Log.STDLog.Error(err)
-	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(err.Error())
+	response.ERROR(w, "false", "Error of database no roe affected", http.StatusInternalServerError, err.Err)
 }
 
-func (httpErr *ErrorDBUpdateResult) Error() string {
-	return fmt.Sprintf("Error of database no roe affected:%v ", httpErr.Err)
+func (err *ErrorDBUpdateResult) Error() string {
+	return fmt.Sprint(err.Err)
 }

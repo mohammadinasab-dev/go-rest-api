@@ -1,3 +1,12 @@
-{"file":"apirunner.go:20","func":" RunAPI","level":"info","msg":"logrus set up","time":"02-04-2021 04:14:04"}
-{"file":"apirunner.go:26","func":" RunAPI","level":"info","msg":"api will run in product mode","time":"02-04-2021 04:14:04"}
-{"file":"apirunner.go:39","func":" RunAPI","level":"info","msg":"Server Started","time":"02-04-2021 04:14:04"}
+{"file":"apirunner.go:20","func":" RunAPI","level":"info","msg":"logrus set up","time":"03-04-2021 08:19:15"}
+{"file":"apirunner.go:26","func":" RunAPI","level":"info","msg":"api will run in product mode","time":"03-04-2021 08:19:15"}
+{"file":"apirunner.go:39","func":" RunAPI","level":"info","msg":"Server Started","time":"03-04-2021 08:19:15"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /login Started","time":"03-04-2021 08:19:35"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /login Ended","time":"03-04-2021 08:19:35"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /book/ Started","time":"03-04-2021 08:20:00"}
+{"file":"jwt.go:67","func":" IsAuthorized","level":"warning","msg":"Invalid token","time":"03-04-2021 08:20:00"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /book/ Ended","time":"03-04-2021 08:20:00"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /book/ Started","time":"03-04-2021 08:20:23"}
+{"file":"httperror.go:65","func":" SetResponse","level":"error","msg":"invalid character '\"' after object key:value pair","time":"03-04-2021 08:20:23"}
+{"file":"apihandlers.go:39","func":" ServeHTTP","level":"error","msg":"invalid character '\"' after object key:value pair","time":"03-04-2021 08:20:23"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /book/ Ended","time":"03-04-2021 08:20:23"}

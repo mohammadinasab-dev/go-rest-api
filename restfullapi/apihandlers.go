@@ -7,6 +7,7 @@ import (
 	"go-rest-api/data"
 	Err "go-rest-api/errorhandler"
 	Log "go-rest-api/logwrapper"
+	"go-rest-api/response"
 	jwt "go-rest-api/security/authentication"
 	"io/ioutil"
 	"net/http"
@@ -70,9 +71,11 @@ func (handler StoryBookRestAPIHandler) signup(w http.ResponseWriter, r *http.Req
 	if !jwt.SetJwtToken(w, user) {
 		return &Err.ErrorJWRTokenNotSet{Err: err}
 	}
-	json.NewEncoder(w).Encode("registeration succeed")
+	response.JSON(w, "true", "registeration succeed", http.StatusOK, "")
+	if err != nil {
+		return &Err.ErrorJSONMarshal{Err: err}
+	}
 	return nil
-
 }
 
 func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Request) error {
@@ -86,21 +89,17 @@ func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
-	storeduser, err := handler.dbhandler.DBLoginHandler(user)
+	storedUser, err := handler.dbhandler.DBLoginHandler(user)
 	if err != nil {
 		return err
-	}
-	jsonbyte, err = json.Marshal(storeduser)
-	if err != nil {
-		return &Err.ErrorJSONMarshal{Err: err}
-
 	}
 	if !jwt.SetJwtToken(w, user) {
 		return &Err.ErrorJWRTokenNotSet{Err: err}
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonbyte)
+	err = response.JSON(w, "true", "login succeed", http.StatusOK, storedUser)
+	if err != nil {
+		return &Err.ErrorJSONMarshal{Err: err}
+	}
 	return nil
 }
 
@@ -121,9 +120,10 @@ func (handler StoryBookRestAPIHandler) newBook(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		return err
 	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("start newbook")
+	err = response.JSON(w, "true", "new book add successfully", http.StatusOK, "")
+	if err != nil {
+		return &Err.ErrorJSONMarshal{Err: err}
+	}
 	return nil
 }
 
@@ -146,26 +146,22 @@ func (handler StoryBookRestAPIHandler) newContext(w http.ResponseWriter, r *http
 	if err != nil {
 		return err
 	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("add new context")
+	err = response.JSON(w, "true", "new context add successfully", http.StatusOK, "")
+	if err != nil {
+		return &Err.ErrorJSONMarshal{Err: err}
+	}
 	return nil
 }
 
 func (handler StoryBookRestAPIHandler) getAllBook(w http.ResponseWriter, r *http.Request) error {
 	books, err := handler.dbhandler.DBGetBooks()
 	if err != nil {
-		fmt.Println("1010101010")
 		return (err)
 	}
-	jsonByte, err := json.Marshal(books)
+	err = response.JSON(w, "true", "books load successfully", http.StatusOK, books)
 	if err != nil {
-		fmt.Println("2020202020")
 		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
-	w.Header().Add("content-type", "aplication/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonByte)
 	return nil
 }
 
@@ -182,13 +178,10 @@ func (handler StoryBookRestAPIHandler) getBook(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		return err
 	}
-	jsonBytes, err := json.Marshal(book)
+	err = response.JSON(w, "true", "the book load successfully", http.StatusOK, book)
 	if err != nil {
-		return &Err.ErrorJSONMarshal{Err: err}
+		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
 	return nil
 }
 
@@ -205,13 +198,10 @@ func (handler StoryBookRestAPIHandler) readBook(w http.ResponseWriter, r *http.R
 	if err != nil {
 		return err
 	}
-	jsonBytes, err := json.Marshal(book)
+	err = response.JSON(w, "true", "books load completely successfull", http.StatusOK, book)
 	if err != nil {
-		return &Err.ErrorJSONMarshal{Err: err}
+		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
 	return nil
 }
 
@@ -230,8 +220,10 @@ func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http
 	if err != nil {
 		return err
 	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("book deleted succesfully")
+	err = response.JSON(w, "true", "book deleted successfully", http.StatusOK, "")
+	if err != nil {
+		return &Err.ErrorJSONUnMarshal{Err: err}
+	}
 	return nil
 }
 
@@ -261,9 +253,10 @@ func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http
 	if err != nil {
 		return err
 	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("book update succesfully")
+	err = response.JSON(w, "true", "book update successfully", http.StatusOK, "")
+	if err != nil {
+		return &Err.ErrorJSONUnMarshal{Err: err}
+	}
 	return nil
 
 }
