@@ -1,12 +1,26 @@
-{"file":"apirunner.go:20","func":" RunAPI","level":"info","msg":"logrus set up","time":"03-04-2021 08:19:15"}
-{"file":"apirunner.go:26","func":" RunAPI","level":"info","msg":"api will run in product mode","time":"03-04-2021 08:19:15"}
-{"file":"apirunner.go:39","func":" RunAPI","level":"info","msg":"Server Started","time":"03-04-2021 08:19:15"}
-{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /login Started","time":"03-04-2021 08:19:35"}
-{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /login Ended","time":"03-04-2021 08:19:35"}
-{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /book/ Started","time":"03-04-2021 08:20:00"}
-{"file":"jwt.go:67","func":" IsAuthorized","level":"warning","msg":"Invalid token","time":"03-04-2021 08:20:00"}
-{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /book/ Ended","time":"03-04-2021 08:20:00"}
-{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /book/ Started","time":"03-04-2021 08:20:23"}
-{"file":"httperror.go:65","func":" SetResponse","level":"error","msg":"invalid character '\"' after object key:value pair","time":"03-04-2021 08:20:23"}
-{"file":"apihandlers.go:39","func":" ServeHTTP","level":"error","msg":"invalid character '\"' after object key:value pair","time":"03-04-2021 08:20:23"}
-{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /book/ Ended","time":"03-04-2021 08:20:23"}
+{"file":"apirunner.go:19","func":" RunAPI","level":"info","msg":"logrus set up","time":"04-04-2021 15:24:41"}
+{"file":"apirunner.go:25","func":" RunAPI","level":"info","msg":"api will run in product mode","time":"04-04-2021 15:24:41"}
+{"file":"apirunner.go:38","func":" RunAPI","level":"info","msg":"Server Started","time":"04-04-2021 15:24:41"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /logout Started","time":"04-04-2021 15:24:58"}
+{"file":"jwt.go:69","func":" IsValid","level":"warning","msg":"Invalid token","time":"04-04-2021 15:24:58"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /logout Ended","time":"04-04-2021 15:24:58"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /login Started","time":"04-04-2021 15:25:09"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /login Ended","time":"04-04-2021 15:25:09"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /logout Started","time":"04-04-2021 15:25:29"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /logout Ended","time":"04-04-2021 15:25:29"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /book/ Started","time":"04-04-2021 15:25:41"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /book/ Ended","time":"04-04-2021 15:25:41"}
+file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /login Started","time":"04-04-2021 15:11:05"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /login Ended","time":"04-04-2021 15:11:05"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /logout Started","time":"04-04-2021 15:11:14"}
+{"file":"jwt.go:69","func":" IsValid","level":"warning","msg":"Invalid token","time":"04-04-2021 15:11:14"}
+{"file":"apihandlers.go:47","func":" ServeHTTP","level":"error","msg":"record not found","time":"04-04-2021 15:11:14"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /logout Ended","time":"04-04-2021 15:11:14"}
+nc":" func1","level":"info","msg":"api: /book/1 Started","time":"04-04-2021 13:55:01"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /book/1 Ended","time":"04-04-2021 13:55:01"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /book/1 Started","time":"04-04-2021 13:56:33"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /book/1 Ended","time":"04-04-2021 13:56:34"}
+{"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /book/view/1 Started","time":"04-04-2021 13:57:01"}
+{"file":"dberror.go:53","func":" SetResponse","level":"error","msg":"record not found","time":"04-04-2021 13:57:01"}
+{"file":"apihandlers.go:39","func":" ServeHTTP","level":"error","msg":"record not found","time":"04-04-2021 13:57:01"}
+{"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /book/view/1 Ended","time":"04-04-2021 13:57:01"}

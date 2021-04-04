@@ -38,30 +38,38 @@ func comparePasswords(hashedPwd string, plainPwd []byte) bool {
 }
 
 //DBSignUpHandler handle the sign up request
-func (handler *SQLHandler) DBSignUpHandler(user User) error {
+func (handler *SQLHandler) DBSignUpHandler(user User) (Authentication, error) {
 	hashedPwd := hashAndSalt([]byte(user.Password))
 	user.Password = hashedPwd
 	result := handler.DB.Debug().Create(&user)
 	if result.Error != nil {
-		return &Err.ErrorDBCreateResult{Err: result.Error}
+		return Authentication{}, &Err.ErrorDBCreateResult{Err: result.Error}
 	}
 	if result.RowsAffected == 0 {
-		return &Err.ErrorDBNoRowsAffected{Err: errors.New("no row effected")}
+		return Authentication{}, &Err.ErrorDBNoRowsAffected{Err: errors.New("no row effected")}
 	}
-	return nil
+	auth, err := handler.CreateAuth(user.UserID)
+	if err != nil {
+		return Authentication{}, &Err.ErrorDBCreateResult{Err: err}
+	}
+	return *auth, nil
 }
 
 //DBLoginHandler handle the log in request
-func (handler *SQLHandler) DBLoginHandler(user User) (User, error) {
+func (handler *SQLHandler) DBLoginHandler(user User) (Authentication, error) {
 	plainPwd := []byte(user.Password)
 	stdu := User{}
 	if result := handler.DB.Debug().Where("email = ?", user.Email).First(&stdu); result.Error != nil || result.Error == gorm.ErrRecordNotFound {
-		return User{}, &Err.ErrorDBFindResult{Err: result.Error}
+		return Authentication{}, &Err.ErrorDBFindResult{Err: result.Error}
 	}
 	hashedPwd := stdu.Password
 	if !comparePasswords(hashedPwd, plainPwd) {
 		err := errors.New("password incorrect")
-		return User{}, err
+		return Authentication{}, err
 	}
-	return stdu, nil
+	auth, err := handler.CreateAuth(user.UserID)
+	if err != nil {
+		return Authentication{}, &Err.ErrorDBCreateResult{Err: err}
+	}
+	return *auth, nil
 }

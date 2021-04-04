@@ -19,18 +19,20 @@ func JWTSetter(jwt string) {
 //Claims is a claime structure for generating jwt token
 type Claims struct {
 	authorized bool
-	Email      string
+	UserID     int
+	AuthUUID   string
 	jwt.StandardClaims
 }
 
 //SetJwtToken generate and sets the Authorization token
-func SetJwtToken(w http.ResponseWriter, login data.User) bool {
+func SetJwtToken(w http.ResponseWriter, auth data.Authentication) bool {
 
 	expTime := time.Now().Add(10 * time.Minute)
 
 	claims := &Claims{
 		authorized: true,
-		Email:      login.Email,
+		UserID:     auth.UserID,
+		AuthUUID:   auth.AuthUUID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expTime.Unix(),
 		},
@@ -49,8 +51,8 @@ func SetJwtToken(w http.ResponseWriter, login data.User) bool {
 	return true
 }
 
-//IsAuthorized checks the Authorization token
-func IsAuthorized(r *http.Request) (data.User, bool) {
+//IsValid checks the Authorization token
+func IsValid(r *http.Request) (data.Authentication, bool) {
 
 	if r.Header["Authorization"] != nil {
 		reqToken := r.Header.Get("Authorization")
@@ -65,23 +67,23 @@ func IsAuthorized(r *http.Request) (data.User, bool) {
 		})
 		if !token.Valid {
 			Log.STDLog.Warn("Invalid token")
-			return data.User{}, false
+			return data.Authentication{}, false
 		}
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
 				Log.STDLog.Error(err)
-				return data.User{}, false
+				return data.Authentication{}, false
 			}
 			Log.STDLog.Error(err)
-			return data.User{}, false
+			return data.Authentication{}, false
 		}
+		var auth data.Authentication
+		auth.UserID = claims.UserID
+		auth.AuthUUID = claims.AuthUUID
 
-		return data.User{
-			Email: claims.Email,
-		}, true
-	} else {
-		return data.User{}, false
-
+		return auth, true
 	}
+
+	return data.Authentication{}, false
 
 }

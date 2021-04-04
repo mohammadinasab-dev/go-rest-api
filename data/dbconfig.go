@@ -22,7 +22,7 @@ func CreateDBConnection(config configuration.Config) (*SQLHandler, error) {
 		Log.STDLog.Error(err)
 		return nil, err
 	}
-	db.AutoMigrate(&User{}, &Book{}, &Context{})
+	db.AutoMigrate(&User{}, &Book{}, &Context{}, &Authentication{})
 	db.Model(&Book{}).AddForeignKey("user_id", "users(user_id)", "SET NULL", "CASCADE")
 	db.Model(&Context{}).AddForeignKey("user_id", "users(user_id)", "SET NULL", "CASCADE")
 	db.Model(&Context{}).AddForeignKey("book_id", "books(book_id)", "SET NULL", "CASCADE")
@@ -38,11 +38,11 @@ func CreateTestDBConnection(config configuration.ConfigTest) (*SQLHandler, error
 		Log.STDLog.Error(err)
 		return nil, err
 	}
-	err = db.DropTableIfExists(&Context{}, &Book{}, &User{}).Error
+	err = db.DropTableIfExists(&Context{}, &Book{}, &User{}, &Authentication{}).Error
 	if err != nil {
 		Log.STDLog.Error(err)
 	}
-	db.AutoMigrate(&User{}, &Book{}, &Context{})
+	db.AutoMigrate(&Authentication{}, &User{}, &Book{}, &Context{})
 	db.Model(&Book{}).AddForeignKey("user_id", "users(user_id)", "SET NULL", "CASCADE")
 	db.Model(&Context{}).AddForeignKey("user_id", "users(user_id)", "SET NULL", "CASCADE")
 	db.Model(&Context{}).AddForeignKey("book_id", "books(book_id)", "SET NULL", "CASCADE")

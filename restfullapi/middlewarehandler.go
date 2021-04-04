@@ -1,4 +1,4 @@
-package middleware
+package restfullapi
 
 import (
 	"errors"
@@ -25,12 +25,19 @@ func ContentTypeMiddle(h http.Handler) http.Handler {
 }
 
 //JWTMiddle checks jwt token
-func JWTMiddle(h http.Handler) http.Handler {
+func (handler StoryBookRestAPIHandler) JWTMiddle(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, ok := jwt.IsAuthorized(r)
+		auth, ok := jwt.IsValid(r)
 		switch ok {
 		case true:
-			h.ServeHTTP(w, r)
+			_, err := handler.dbhandler.FetchAuth(&auth)
+			if err != nil {
+				func(w http.ResponseWriter, r *http.Request) {
+					response.ERROR(w, "false", "Error of Unauthorized user", http.StatusUnauthorized, errors.New("Unauthorized attempt"))
+				}(w, r)
+			} else if err == nil {
+				h.ServeHTTP(w, r)
+			}
 		case false:
 			func(w http.ResponseWriter, r *http.Request) {
 				response.ERROR(w, "false", "Error of Unauthorized user", http.StatusUnauthorized, errors.New("Unauthorized attempt"))

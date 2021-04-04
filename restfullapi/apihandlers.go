@@ -64,11 +64,11 @@ func (handler StoryBookRestAPIHandler) signup(w http.ResponseWriter, r *http.Req
 	if err := user.Validate(); err != nil {
 		return &Err.ErrorValidateRequest{Err: err}
 	}
-	err = handler.dbhandler.DBSignUpHandler(user)
+	auth, err := handler.dbhandler.DBSignUpHandler(user)
 	if err != nil {
 		return err
 	}
-	if !jwt.SetJwtToken(w, user) {
+	if !jwt.SetJwtToken(w, auth) {
 		return &Err.ErrorJWRTokenNotSet{Err: err}
 	}
 	response.JSON(w, "true", "registeration succeed", http.StatusOK, "")
@@ -89,14 +89,26 @@ func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
-	storedUser, err := handler.dbhandler.DBLoginHandler(user)
+	auth, err := handler.dbhandler.DBLoginHandler(user)
 	if err != nil {
 		return err
 	}
-	if !jwt.SetJwtToken(w, user) {
+	if !jwt.SetJwtToken(w, auth) {
 		return &Err.ErrorJWRTokenNotSet{Err: err}
 	}
-	err = response.JSON(w, "true", "login succeed", http.StatusOK, storedUser)
+	err = response.JSON(w, "true", "login succeed", http.StatusOK, "")
+	if err != nil {
+		return &Err.ErrorJSONMarshal{Err: err}
+	}
+	return nil
+}
+
+func (handler StoryBookRestAPIHandler) logout(w http.ResponseWriter, r *http.Request) error {
+	auth, _ := jwt.IsValid(r)
+	if err := handler.dbhandler.DeleteAuth(&auth); err != nil {
+		return &Err.ErrorDBDeleteResult{Err: err}
+	}
+	err := response.JSON(w, "true", "log out successfully", http.StatusOK, "")
 	if err != nil {
 		return &Err.ErrorJSONMarshal{Err: err}
 	}
@@ -104,7 +116,7 @@ func (handler StoryBookRestAPIHandler) login(w http.ResponseWriter, r *http.Requ
 }
 
 func (handler StoryBookRestAPIHandler) newBook(w http.ResponseWriter, r *http.Request) error {
-	user, _ := jwt.IsAuthorized(r)
+	auth, _ := jwt.IsValid(r)
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -116,7 +128,7 @@ func (handler StoryBookRestAPIHandler) newBook(w http.ResponseWriter, r *http.Re
 		return &Err.ErrorJSONUnMarshal{Err: err}
 	}
 
-	err = handler.dbhandler.DBInsertBook(book, user)
+	err = handler.dbhandler.DBInsertBook(book, auth.UserID)
 	if err != nil {
 		return err
 	}
@@ -128,7 +140,7 @@ func (handler StoryBookRestAPIHandler) newBook(w http.ResponseWriter, r *http.Re
 }
 
 func (handler StoryBookRestAPIHandler) newContext(w http.ResponseWriter, r *http.Request) error {
-	user, _ := jwt.IsAuthorized(r)
+	auth, _ := jwt.IsValid(r)
 	jsonbyte, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -142,7 +154,7 @@ func (handler StoryBookRestAPIHandler) newContext(w http.ResponseWriter, r *http
 	if err := context.Validate(); err != nil {
 		return &Err.ErrorValidateRequest{Err: err}
 	}
-	err = handler.dbhandler.DBAddContext(context, user)
+	err = handler.dbhandler.DBAddContext(context, auth.UserID)
 	if err != nil {
 		return err
 	}
@@ -206,7 +218,7 @@ func (handler StoryBookRestAPIHandler) readBook(w http.ResponseWriter, r *http.R
 }
 
 func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http.Request) error {
-	user, _ := jwt.IsAuthorized(r)
+	auth, _ := jwt.IsValid(r)
 	vars := mux.Vars(r)
 	if _, ok := vars["ID"]; !ok {
 		return &Err.ErrorBadRequest{Err: errors.New("bad request")}
@@ -216,7 +228,7 @@ func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http
 		return err
 	}
 
-	err = handler.dbhandler.DBDeleteBookByID(bookID, user)
+	err = handler.dbhandler.DBDeleteBookByID(bookID, auth.UserID)
 	if err != nil {
 		return err
 	}
@@ -228,7 +240,7 @@ func (handler StoryBookRestAPIHandler) deleteBook(w http.ResponseWriter, r *http
 }
 
 func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http.Request) error {
-	user, _ := jwt.IsAuthorized(r)
+	auth, _ := jwt.IsValid(r)
 	vars := mux.Vars(r)
 	if _, ok := vars["ID"]; !ok {
 		return &Err.ErrorBadRequest{Err: errors.New("bad request")}
@@ -249,7 +261,7 @@ func (handler StoryBookRestAPIHandler) updateBook(w http.ResponseWriter, r *http
 	}
 	fmt.Println(book.BookID)
 	book.BookID = bookID
-	err = handler.dbhandler.DBUpdateBookByID(book, user)
+	err = handler.dbhandler.DBUpdateBookByID(book, auth.UserID)
 	if err != nil {
 		return err
 	}

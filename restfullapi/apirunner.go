@@ -4,7 +4,6 @@ import (
 	"go-rest-api/configuration"
 	"go-rest-api/data"
 	Log "go-rest-api/logwrapper"
-	"go-rest-api/middleware"
 	jwt "go-rest-api/security/authentication"
 	"net/http"
 
@@ -64,6 +63,8 @@ func RunAPIOnRouter(r *mux.Router, db *data.SQLHandler) {
 	handler = NewStoryBookRestAPIHandler(db)
 	r.Handle("/signup", rootHandler(handler.signup)).Methods("POST")
 	r.Handle("/login", rootHandler(handler.login)).Methods("POST")
+	rr := r.Path("/logout").Subrouter()
+	rr.Handle("", rootHandler(handler.logout)).Methods("POST")
 	rb := r.PathPrefix("/book").Subrouter()
 	rb.Handle("/", rootHandler(handler.getAllBook)).Methods("GET")
 	rb.Handle("/", rootHandler(handler.newBook)).Methods("POST")
@@ -73,6 +74,8 @@ func RunAPIOnRouter(r *mux.Router, db *data.SQLHandler) {
 	rb.Handle("/{ID}", rootHandler(handler.deleteBook)).Methods("DELETE")
 	rb.Handle("/view/{ID}", rootHandler(handler.getBook)).Methods("GET")
 	rb.Handle("/read/{ID}", rootHandler(handler.readBook)).Methods("GET")
-	r.Use(middleware.LoggerMiddle, middleware.ContentTypeMiddle)
-	rb.Use(middleware.JWTMiddle)
+	r.Use(LoggerMiddle, ContentTypeMiddle)
+	rb.Use(handler.JWTMiddle)
+	rr.Use(handler.JWTMiddle)
+
 }

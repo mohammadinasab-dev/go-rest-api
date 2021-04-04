@@ -39,3 +39,10 @@ type Context struct {
 	UserID    int        `json:"userid"`
 	BookID    int        `json:"bookid"`
 }
+
+//Authentication model correspond to Authentication DB table
+type Authentication struct {
+	AuthenticationID int    `gorm:"primary_key;auto_increment" json:"authenticationid"`
+	UserID           int    `gorm:";not null;" json:"userid"`
+	AuthUUID         string `gorm:"size:255;not null;" json:"authuuid"`
+}
