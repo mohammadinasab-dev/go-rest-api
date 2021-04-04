@@ -71,7 +71,7 @@ func (handler StoryBookRestAPIHandler) signup(w http.ResponseWriter, r *http.Req
 	if !jwt.SetJwtToken(w, auth) {
 		return &Err.ErrorJWRTokenNotSet{Err: err}
 	}
-	response.JSON(w, "true", "registeration succeed", http.StatusOK, "")
+	err = response.JSON(w, "true", "registeration succeed", http.StatusOK, "")
 	if err != nil {
 		return &Err.ErrorJSONMarshal{Err: err}
 	}

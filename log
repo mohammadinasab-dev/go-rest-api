@@ -1,6 +1,6 @@
-{"file":"apirunner.go:19","func":" RunAPI","level":"info","msg":"logrus set up","time":"04-04-2021 15:24:41"}
-{"file":"apirunner.go:25","func":" RunAPI","level":"info","msg":"api will run in product mode","time":"04-04-2021 15:24:41"}
-{"file":"apirunner.go:38","func":" RunAPI","level":"info","msg":"Server Started","time":"04-04-2021 15:24:41"}
+{"file":"apirunner.go:19","func":" RunAPI","level":"info","msg":"logrus set up","time":"04-04-2021 16:07:45"}
+{"file":"apirunner.go:25","func":" RunAPI","level":"info","msg":"api will run in product mode","time":"04-04-2021 16:07:45"}
+{"file":"apirunner.go:38","func":" RunAPI","level":"info","msg":"Server Started","time":"04-04-2021 16:07:45"}
 {"file":"middlewarehandler.go:16","func":" func1","level":"info","msg":"api: /logout Started","time":"04-04-2021 15:24:58"}
 {"file":"jwt.go:69","func":" IsValid","level":"warning","msg":"Invalid token","time":"04-04-2021 15:24:58"}
 {"file":"middlewarehandler.go:19","func":" func1","level":"info","msg":"api: /logout Ended","time":"04-04-2021 15:24:58"}
